@@ -10,6 +10,7 @@ public class Application {
     public static void main(String[] args) throws IOException {
         String sourceDir = args[0];
         String targetRootDir = args[1];
+        System.out.println("sourceDir : " + sourceDir + ", targetRootDir : " + targetRootDir);
         new FileOrganizer().execute(sourceDir, targetRootDir, FileExecutionMode.MOVE);
     }
 
