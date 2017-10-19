@@ -18,7 +18,7 @@ public class FileOrganizerTest {
 
     @Test
     public void execute() throws Exception {
-        String sourceDir = "E:\\test\\image";
+        String sourceDir = "E:\\test\\image\\test_dir";
         String destDir = "E:\\test\\image\\dest";
         boolean existsDestDir = new File(destDir).exists();
 
@@ -55,11 +55,24 @@ public class FileOrganizerTest {
         Path result = Files.createDirectories(path.toAbsolutePath());
         System.out.println(result);
     }
+    
+    @Test
+    public void 파일사이즈() {
+        File file = new File("E:\\test\\image\\test.txt");
+        long size = file.length();
+        System.out.println(size);
+    }
 
     @Test
     public void format테스트() {
         String.format("%d", 93);
         System.out.printf("%d", 93);
+    }
+
+    @Test
+    public void test() throws IOException {
+        Path path = Paths.get("E:\\test\\image", "2016", "01");
+        Files.createDirectories(path);
     }
 
 }

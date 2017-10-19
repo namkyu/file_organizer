@@ -5,9 +5,7 @@ import com.kyu.file.filter.ImageFileFilter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,6 +18,7 @@ import java.util.Random;
 public class FileOrganizer {
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+    private CopyOption[] copyOptions = new CopyOption[] { StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES };
 
     /**
      * 실행
@@ -30,20 +29,53 @@ public class FileOrganizer {
     public void execute(String sourceDir, String targetRootDir, FileExecutionMode mode) throws IOException {
         List<File> fileList = new ArrayList<>();
         fileList = recursiveFile(fileList, new File(sourceDir));
-        System.out.printf("대상 파일 리스트 : %s\n", fileList.size());
+        System.out.printf("대상 파일 : %s\n", fileList.size());
 
-        for (File file : fileList) {
-            Path sourceFilePath = Paths.get(file.getAbsolutePath());
-            Path targetPath = makeDir(targetRootDir, file);
-            System.out.printf("sourceFilePath : %s, targetPath : %s\n", sourceFilePath, targetPath);
+        for (File sourceFilePath : fileList) {
+            File targetPath = makeDir(targetRootDir, sourceFilePath).toFile();
+            File targetFilePath = new File(targetPath, renameFile(sourceFilePath));
 
-            String targetFileName = renameFile(file);
-            if (FileExecutionMode.COPY == mode) {
-                Files.copy(sourceFilePath, targetPath.resolve(targetFileName));
-            } else if (FileExecutionMode.MOVE == mode) {
-                Files.move(sourceFilePath, targetPath.resolve(targetFileName));
+            if (targetFilePath.exists()) {
+                if (sourceFilePath.lastModified() == targetFilePath.lastModified()) {
+                    if (sourceFilePath.length() == targetFilePath.length()) {
+                        continue;
+                    }
+
+                    boolean addRandomName = true;
+                    targetFilePath = new File(targetPath, renameFile(sourceFilePath, addRandomName));
+                }
             }
+
+            if (FileExecutionMode.COPY == mode) {
+                Files.copy(sourceFilePath.toPath(), targetFilePath.toPath(), copyOptions);
+            } else if (FileExecutionMode.MOVE == mode) {
+                Files.move(sourceFilePath.toPath(), targetFilePath.toPath(), copyOptions);
+            }
+
+            System.out.printf("sourceFilePath : %s, targetFilePath : %s\n", sourceFilePath, targetFilePath);
         }
+    }
+
+    /**
+     * @param sourceFilePath
+     * @param targetFilePath
+     * @return
+     */
+    private boolean isSameFile(File sourceFilePath, File targetFilePath) {
+        boolean sameSize = false;
+        boolean sameLastModified = false;
+
+        // 파일 사이즈
+        if (sourceFilePath.length() == targetFilePath.length()) {
+            sameSize = true;
+        }
+
+        // 파일 수정 일자
+        if (sourceFilePath.lastModified() == targetFilePath.lastModified()) {
+            sameLastModified = true;
+        }
+
+        return sameSize && sameLastModified;
     }
 
     /**
@@ -85,19 +117,31 @@ public class FileOrganizer {
 
 
     /**
-     * 이미지 파일명 변경
      * @param file
      * @return
      */
     private String renameFile(File file) {
+        return renameFile(file, false);
+    }
+
+    /**
+     * 이미지 파일명 변경
+     * @param file
+     * @return
+     */
+    private String renameFile(File file, boolean addRandomDigit) {
         String lastModified = sdf.format(file.lastModified());
         String randomDigit = String.format("%04d", new Random().nextInt(10000));
         String fileExtension = getFileExtension(file);
 
         StringBuilder builder = new StringBuilder();
         builder.append(lastModified);
-        builder.append("-");
-        builder.append(randomDigit);
+
+        if (addRandomDigit) {
+            builder.append("-");
+            builder.append(randomDigit);
+        }
+
         builder.append(".");
         builder.append(fileExtension);
         return builder.toString();
