@@ -47,9 +47,9 @@ public class FileOrganizer {
             }
 
             if (FileExecutionMode.COPY == mode) {
-                Files.copy(sourceFilePath.toPath(), targetFilePath.toPath(), copyOptions);
+                Files.copy(sourceFilePath.toPath(), targetFilePath.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
             } else if (FileExecutionMode.MOVE == mode) {
-                Files.move(sourceFilePath.toPath(), targetFilePath.toPath(), copyOptions);
+                Files.move(sourceFilePath.toPath(), targetFilePath.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
 
             System.out.printf("sourceFilePath : %s, targetFilePath : %s\n", sourceFilePath, targetFilePath);
