@@ -28,6 +28,9 @@ public class FileOrganizer {
      */
     public void execute(String sourceDir, String targetRootDir, FileExecutionMode mode) throws IOException {
         List<File> fileList = new ArrayList<>();
+        int sameFileCnt = 0;
+        int completedFileCnt = 0;
+
         fileList = recursiveFile(fileList, new File(sourceDir));
         System.out.printf("대상 파일 : %s\n", fileList.size());
 
@@ -38,6 +41,7 @@ public class FileOrganizer {
             if (targetFilePath.exists()) {
                 if (sourceFilePath.lastModified() == targetFilePath.lastModified()) {
                     if (sourceFilePath.length() == targetFilePath.length()) {
+                        sameFileCnt++;
                         continue;
                     }
 
@@ -52,8 +56,11 @@ public class FileOrganizer {
                 Files.move(sourceFilePath.toPath(), targetFilePath.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
 
+            completedFileCnt++;
             System.out.printf("sourceFilePath : %s, targetFilePath : %s\n", sourceFilePath, targetFilePath);
         }
+
+        System.out.printf("targetFiltListCnt : %s, completedFileCnt : %s, sameFileCnt : %s", fileList.size(), completedFileCnt, sameFileCnt);
     }
 
     /**
